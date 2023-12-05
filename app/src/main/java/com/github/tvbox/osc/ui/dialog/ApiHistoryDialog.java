@@ -7,6 +7,7 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 
 import com.github.tvbox.osc.R;
+import com.github.tvbox.osc.bean.IdNameAddressBean;
 import com.github.tvbox.osc.ui.adapter.ApiHistoryDialogAdapter;
 import com.owen.tvrecyclerview.widget.TvRecyclerView;
 
@@ -29,7 +30,7 @@ public class ApiHistoryDialog extends BaseDialog {
         ((TextView) findViewById(R.id.title)).setText(tip);
     }
 
-    public void setAdapter(ApiHistoryDialogAdapter.SelectDialogInterface sourceBeanSelectDialogInterface, List<String> data, int select) {
+    public void setAdapter(ApiHistoryDialogAdapter.SelectDialogInterface sourceBeanSelectDialogInterface, List<IdNameAddressBean> data, int select) {
         ApiHistoryDialogAdapter adapter = new ApiHistoryDialogAdapter(sourceBeanSelectDialogInterface);
         adapter.setData(data, select);
         TvRecyclerView tvRecyclerView = ((TvRecyclerView) findViewById(R.id.list));

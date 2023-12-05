@@ -2,6 +2,7 @@ package com.github.tvbox.osc.ui.dialog;
 
 import android.app.Activity;
 import android.content.Context;
+import android.text.TextUtils;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.ImageView;
@@ -11,6 +12,8 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 
 import com.github.tvbox.osc.R;
+import com.github.tvbox.osc.bean.IdNameAddressBean;
+import com.github.tvbox.osc.constant.Constants;
 import com.github.tvbox.osc.event.RefreshEvent;
 import com.github.tvbox.osc.server.ControlManager;
 import com.github.tvbox.osc.ui.adapter.ApiHistoryDialogAdapter;
@@ -39,7 +42,9 @@ import me.jessyan.autosize.utils.AutoSizeUtils;
 public class ApiDialog extends BaseDialog {
     private ImageView ivQRCode;
     private TextView tvAddress;
-    private EditText inputApi;
+    private TextView inputApi;
+
+    private EditText etAddress;
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void refresh(RefreshEvent event) {
@@ -56,44 +61,89 @@ public class ApiDialog extends BaseDialog {
         tvAddress = findViewById(R.id.tvAddress);
         inputApi = findViewById(R.id.input);
         inputApi.setText(Hawk.get(HawkConfig.API_URL, ""));
+        etAddress = findViewById(R.id.et_address);
+
+        List<IdNameAddressBean> addressList = Constants.getConfigList();
+        String current = Hawk.get(HawkConfig.API_URL, "");
+        int idx = 0;
+        for (int i = 0; i < addressList.size(); i++) {
+            if (!TextUtils.isEmpty(current) && current.equals(addressList.get(i).getAddress())) {
+                idx = i;
+                break;
+            }
+        }
+
+        int finalIdx = idx;
+        inputApi.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                ApiHistoryDialog dialog = new ApiHistoryDialog(getContext());
+                dialog.setTip("选择线路");
+                dialog.setAdapter(new ApiHistoryDialogAdapter.SelectDialogInterface() {
+                    @Override
+                    public void click(IdNameAddressBean value) {
+                        inputApi.setText(value.getAddress());
+                        listener.onchange(value.getAddress());
+                        dialog.dismiss();
+                    }
+
+                    @Override
+                    public void del(IdNameAddressBean value, ArrayList<IdNameAddressBean> data) {
+                        Hawk.put(HawkConfig.API_HISTORY, data);
+                    }
+                }, addressList, finalIdx);
+                dialog.show();
+            }
+        });
+
         findViewById(R.id.inputSubmit).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 String newApi = inputApi.getText().toString().trim();
-                if (!newApi.isEmpty() && (newApi.startsWith("http") || newApi.startsWith("clan"))) {
-                    ArrayList<String> history = Hawk.get(HawkConfig.API_HISTORY, new ArrayList<String>());
-                    if (!history.contains(newApi))
-                        history.add(0, newApi);
-                    if (history.size() > 10)
-                        history.remove(10);
-                    Hawk.put(HawkConfig.API_HISTORY, history);
-                    listener.onchange(newApi);
-                    dismiss();
-                }
+                listener.onchange(newApi);
+                dismiss();
+            }
+        });
+
+        findViewById(R.id.tv_submit).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                String newApi = etAddress.getText().toString().trim();
+                ArrayList<IdNameAddressBean> history = Hawk.get(HawkConfig.API_HISTORY, new ArrayList<>());
+                history.add(0, new IdNameAddressBean(0, "未命名", newApi));
+                Hawk.put(HawkConfig.API_HISTORY, history);
+                listener.onchange(newApi);
+                dismiss();
             }
         });
         findViewById(R.id.apiHistory).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                ArrayList<String> history = Hawk.get(HawkConfig.API_HISTORY, new ArrayList<String>());
-                if (history.isEmpty())
+                ArrayList<IdNameAddressBean> history = Hawk.get(HawkConfig.API_HISTORY, new ArrayList<>());
+                if (history.isEmpty()) {
                     return;
+                }
+                List<String> hisList = new ArrayList<>();
+                for (int i = 0; i < history.size(); i++) {
+                    hisList.add(history.get(i).getAddress());
+                }
                 String current = Hawk.get(HawkConfig.API_URL, "");
                 int idx = 0;
-                if (history.contains(current))
-                    idx = history.indexOf(current);
+                if (hisList.contains(current)) {
+                    idx = hisList.indexOf(current);
+                }
                 ApiHistoryDialog dialog = new ApiHistoryDialog(getContext());
                 dialog.setTip("历史配置列表");
                 dialog.setAdapter(new ApiHistoryDialogAdapter.SelectDialogInterface() {
                     @Override
-                    public void click(String value) {
-                        inputApi.setText(value);
-                        listener.onchange(value);
+                    public void click(IdNameAddressBean value) {
+                        inputApi.setText(value.getAddress());
+                        listener.onchange(value.getAddress());
                         dialog.dismiss();
                     }
 
                     @Override
-                    public void del(String value, ArrayList<String> data) {
+                    public void del(IdNameAddressBean value, ArrayList<IdNameAddressBean> data) {
                         Hawk.put(HawkConfig.API_HISTORY, data);
                     }
                 }, history, idx);

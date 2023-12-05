@@ -1,5 +1,7 @@
 package com.github.tvbox.osc.ui.adapter;
 
+import android.annotation.SuppressLint;
+import android.graphics.Color;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -11,13 +13,14 @@ import androidx.recyclerview.widget.ListAdapter;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.github.tvbox.osc.R;
+import com.github.tvbox.osc.bean.IdNameAddressBean;
 
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class ApiHistoryDialogAdapter extends ListAdapter<String, ApiHistoryDialogAdapter.SelectViewHolder> {
+public class ApiHistoryDialogAdapter extends ListAdapter<IdNameAddressBean, ApiHistoryDialogAdapter.SelectViewHolder> {
 
     class SelectViewHolder extends RecyclerView.ViewHolder {
 
@@ -27,34 +30,35 @@ public class ApiHistoryDialogAdapter extends ListAdapter<String, ApiHistoryDialo
     }
 
     public interface SelectDialogInterface {
-        void click(String value);
+        void click(IdNameAddressBean bean);
 
-        void del(String value, ArrayList<String> data);
+        void del(IdNameAddressBean value, ArrayList<IdNameAddressBean> data);
     }
 
 
-    private ArrayList<String> data = new ArrayList<>();
+    private ArrayList<IdNameAddressBean> data = new ArrayList<>();
 
-    private String select = "";
+    private IdNameAddressBean select = new IdNameAddressBean();
 
     private SelectDialogInterface dialogInterface = null;
 
     public ApiHistoryDialogAdapter(SelectDialogInterface dialogInterface) {
-        super(new DiffUtil.ItemCallback<String>() {
+        super(new DiffUtil.ItemCallback<IdNameAddressBean>() {
             @Override
-            public boolean areItemsTheSame(@NonNull @NotNull String oldItem, @NonNull @NotNull String newItem) {
+            public boolean areItemsTheSame(@NonNull @NotNull IdNameAddressBean oldItem, @NonNull @NotNull IdNameAddressBean newItem) {
                 return oldItem.equals(newItem);
             }
 
+            @SuppressLint("DiffUtilEquals")
             @Override
-            public boolean areContentsTheSame(@NonNull @NotNull String oldItem, @NonNull @NotNull String newItem) {
+            public boolean areContentsTheSame(@NonNull @NotNull IdNameAddressBean oldItem, @NonNull @NotNull IdNameAddressBean newItem) {
                 return oldItem.equals(newItem);
             }
         });
         this.dialogInterface = dialogInterface;
     }
 
-    public void setData(List<String> newData, int defaultSelect) {
+    public void setData(List<IdNameAddressBean> newData, int defaultSelect) {
         data.clear();
         data.addAll(newData);
         select = data.get(defaultSelect);
@@ -72,18 +76,25 @@ public class ApiHistoryDialogAdapter extends ListAdapter<String, ApiHistoryDialo
         return new ApiHistoryDialogAdapter.SelectViewHolder(LayoutInflater.from(parent.getContext()).inflate(R.layout.item_dialog_api_history, parent, false));
     }
 
+    @SuppressLint("SetTextI18n")
     @Override
     public void onBindViewHolder(@NonNull @NotNull ApiHistoryDialogAdapter.SelectViewHolder holder, int position) {
-        String value = data.get(position);
-        String name = value;
-        if (select.equals(value))
-            name = "√ " + name;
-        ((TextView) holder.itemView.findViewById(R.id.tvName)).setText(name);
+        IdNameAddressBean value = data.get(position);
+        TextView textView = holder.itemView.findViewById(R.id.tvName);
+        String id = String.valueOf(value.getId() + 1);
+        textView.setText(id + "：" + value.getName());
+        if (select.equals(value)) {
+            textView.setTextColor(Color.RED);
+        } else {
+            textView.setTextColor(Color.WHITE);
+        }
         holder.itemView.findViewById(R.id.tvName).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (select.equals(value))
+                if (select.equals(value)) {
+                    dialogInterface.click(value);
                     return;
+                }
                 notifyItemChanged(data.indexOf(select));
                 select = value;
                 notifyItemChanged(data.indexOf(value));
