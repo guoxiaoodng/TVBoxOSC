@@ -14,4 +14,8 @@ public class Constants {
 
         return addressList;
     }
+
+    public static String getTabName() {
+        return "茜茜";
+    }
 }

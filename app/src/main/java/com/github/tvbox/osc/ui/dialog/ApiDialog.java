@@ -83,6 +83,7 @@ public class ApiDialog extends BaseDialog {
                     @Override
                     public void click(IdNameAddressBean value) {
                         inputApi.setText(value.getAddress());
+                        inputApi.setTag(value.getName());
                         listener.onchange(value.getAddress());
                         dialog.dismiss();
                     }
@@ -100,6 +101,10 @@ public class ApiDialog extends BaseDialog {
             @Override
             public void onClick(View v) {
                 String newApi = inputApi.getText().toString().trim();
+                String newTag = inputApi.getTag().toString();
+                ArrayList<IdNameAddressBean> history = Hawk.get(HawkConfig.API_HISTORY, new ArrayList<>());
+                history.add(0, new IdNameAddressBean(0, newTag, newApi));
+                Hawk.put(HawkConfig.API_HISTORY, history);
                 listener.onchange(newApi);
                 dismiss();
             }
@@ -110,7 +115,7 @@ public class ApiDialog extends BaseDialog {
             public void onClick(View v) {
                 String newApi = etAddress.getText().toString().trim();
                 ArrayList<IdNameAddressBean> history = Hawk.get(HawkConfig.API_HISTORY, new ArrayList<>());
-                history.add(0, new IdNameAddressBean(0, "未命名", newApi));
+                history.add(0, new IdNameAddressBean(0, "自定义", newApi));
                 Hawk.put(HawkConfig.API_HISTORY, history);
                 listener.onchange(newApi);
                 dismiss();

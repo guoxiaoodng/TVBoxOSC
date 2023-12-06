@@ -81,7 +81,7 @@ public class ApiHistoryDialogAdapter extends ListAdapter<IdNameAddressBean, ApiH
     public void onBindViewHolder(@NonNull @NotNull ApiHistoryDialogAdapter.SelectViewHolder holder, int position) {
         IdNameAddressBean value = data.get(position);
         TextView textView = holder.itemView.findViewById(R.id.tvName);
-        String id = String.valueOf(value.getId() + 1);
+        String id = String.valueOf(position + 1);
         textView.setText(id + "：" + value.getName());
         if (select.equals(value)) {
             textView.setTextColor(Color.RED);
