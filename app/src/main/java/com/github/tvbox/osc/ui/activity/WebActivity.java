@@ -2,11 +2,8 @@ package com.github.tvbox.osc.ui.activity;
 
 import static android.webkit.WebSettings.LOAD_NO_CACHE;
 
-import android.net.Uri;
-import android.view.KeyEvent;
 import android.view.View;
 import android.webkit.JsResult;
-import android.webkit.ValueCallback;
 import android.webkit.WebChromeClient;
 import android.webkit.WebResourceRequest;
 import android.webkit.WebSettings;
@@ -29,7 +26,7 @@ public class WebActivity extends BaseActivity {
     protected void init() {
         webView = findViewById(R.id.web_view);
         initWeb(webView);
-        webView.loadUrl("https://svip.bljiex.cc/");
+        webView.loadUrl("https://www.pgyer.com/iVObXX/");
     }
 
     private void initWeb(WebView webView) {

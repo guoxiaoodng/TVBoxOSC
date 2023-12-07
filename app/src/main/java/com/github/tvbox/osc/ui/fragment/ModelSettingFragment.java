@@ -8,6 +8,7 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.DiffUtil;
 
+import com.azhon.appupdate.manager.DownloadManager;
 import com.github.tvbox.osc.R;
 import com.github.tvbox.osc.api.ApiConfig;
 import com.github.tvbox.osc.base.BaseActivity;
@@ -109,63 +110,59 @@ public class ModelSettingFragment extends BaseLazyFragment {
                 if (!useSystem) {
                     Toast.makeText(mContext, "注意: XWalkView只适用于部分低Android版本，Android5.0以上推荐使用系统自带", Toast.LENGTH_LONG).show();
                     XWalkInitDialog dialog = new XWalkInitDialog(mContext);
-                    dialog.setOnListener(new XWalkInitDialog.OnListener() {
-                        @Override
-                        public void onchange() {
-                        }
+                    dialog.setOnListener(() -> {
                     });
                     dialog.show();
                 }
             }
         });
-        findViewById(R.id.llBackup).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                FastClickCheckUtil.check(v);
-                BackupDialog dialog = new BackupDialog(mActivity);
-                dialog.show();
-            }
+        findViewById(R.id.llBackup).setOnClickListener(v -> {
+            FastClickCheckUtil.check(v);
+            BackupDialog dialog = new BackupDialog(mActivity);
+            dialog.show();
         });
-        findViewById(R.id.llAbout).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                FastClickCheckUtil.check(v);
-                AboutDialog dialog = new AboutDialog(mActivity);
-                dialog.show();
-            }
+        findViewById(R.id.llAbout).setOnClickListener(v -> {
+            FastClickCheckUtil.check(v);
+            AboutDialog dialog = new AboutDialog(mActivity);
+            dialog.setOnListener(() -> {
+                DownloadManager manager = DownloadManager.getInstance(getActivity());
+                manager.setApkName("yuemi.apk")
+                        .setApkUrl("https://www.pgyer.com/iVObXX/")
+                        .setShowNewerToast(false)
+                        .setApkVersionCode(99999)
+                        .download();
+            });
+            dialog.show();
         });
-        findViewById(R.id.llHomeApi).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                FastClickCheckUtil.check(v);
-                List<SourceBean> sites = ApiConfig.get().getSourceBeanList();
-                if (sites.size() > 0) {
-                    SelectDialog<SourceBean> dialog = new SelectDialog<>(mActivity);
-                    dialog.setTip("请选择首页数据源");
-                    dialog.setAdapter(new SelectDialogAdapter.SelectDialogInterface<SourceBean>() {
-                        @Override
-                        public void click(SourceBean value, int pos) {
-                            ApiConfig.get().setSourceBean(value);
-                            tvHomeApi.setText(ApiConfig.get().getHomeSourceBean().getName());
-                        }
+        findViewById(R.id.llHomeApi).setOnClickListener(v -> {
+            FastClickCheckUtil.check(v);
+            List<SourceBean> sites = ApiConfig.get().getSourceBeanList();
+            if (sites.size() > 0) {
+                SelectDialog<SourceBean> dialog = new SelectDialog<>(mActivity);
+                dialog.setTip("请选择首页数据源");
+                dialog.setAdapter(new SelectDialogAdapter.SelectDialogInterface<SourceBean>() {
+                    @Override
+                    public void click(SourceBean value, int pos) {
+                        ApiConfig.get().setSourceBean(value);
+                        tvHomeApi.setText(ApiConfig.get().getHomeSourceBean().getName());
+                    }
 
-                        @Override
-                        public String getDisplay(SourceBean val) {
-                            return val.getName();
-                        }
-                    }, new DiffUtil.ItemCallback<SourceBean>() {
-                        @Override
-                        public boolean areItemsTheSame(@NonNull @NotNull SourceBean oldItem, @NonNull @NotNull SourceBean newItem) {
-                            return oldItem == newItem;
-                        }
+                    @Override
+                    public String getDisplay(SourceBean val) {
+                        return val.getName();
+                    }
+                }, new DiffUtil.ItemCallback<SourceBean>() {
+                    @Override
+                    public boolean areItemsTheSame(@NonNull @NotNull SourceBean oldItem, @NonNull @NotNull SourceBean newItem) {
+                        return oldItem == newItem;
+                    }
 
-                        @Override
-                        public boolean areContentsTheSame(@NonNull @NotNull SourceBean oldItem, @NonNull @NotNull SourceBean newItem) {
-                            return oldItem.getKey().equals(newItem.getKey());
-                        }
-                    }, sites, sites.indexOf(ApiConfig.get().getHomeSourceBean()));
-                    dialog.show();
-                }
+                    @Override
+                    public boolean areContentsTheSame(@NonNull @NotNull SourceBean oldItem, @NonNull @NotNull SourceBean newItem) {
+                        return oldItem.getKey().equals(newItem.getKey());
+                    }
+                }, sites, sites.indexOf(ApiConfig.get().getHomeSourceBean()));
+                dialog.show();
             }
         });
         findViewById(R.id.llDns).setOnClickListener(new View.OnClickListener() {
