@@ -29,7 +29,7 @@ public class WebActivity extends BaseActivity {
     protected void init() {
         webView = findViewById(R.id.web_view);
         initWeb(webView);
-        webView.loadUrl("https://www.baidu.com/");
+        webView.loadUrl("https://svip.bljiex.cc/");
     }
 
     private void initWeb(WebView webView) {
@@ -71,23 +71,11 @@ public class WebActivity extends BaseActivity {
     }
 
     @Override
-    public boolean onKeyDown(int keyCode, KeyEvent event) {
-        if ((keyCode == KeyEvent.KEYCODE_BACK)) {
-            if (webView.canGoBack()) {
-                webView.goBack();
-            } else {
-                finish();
-            }
-        }
-        return super.onKeyDown(keyCode, event);
-    }
-
-    @Override
     public void onBackPressed() {
-        if (webView.canGoBack()) {
-            webView.goBack();
+        if (!webView.canGoBackOrForward(-1)) {
+            super.onBackPressed();
         } else {
-            finish();
+            webView.goBackOrForward(-1);
         }
     }
 }
