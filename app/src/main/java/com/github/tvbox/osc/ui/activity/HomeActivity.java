@@ -123,6 +123,8 @@ public class HomeActivity extends BaseActivity {
         this.mGridView.setSpacingWithMargins(0, AutoSizeUtils.dp2px(this.mContext, 10.0f));
         this.mGridView.setAdapter(this.sortAdapter);
 
+        findViewById(R.id.tvName).setOnClickListener(v -> jumpActivity(WebActivity.class));
+
 //        List<Integer> imgList = new ArrayList<>();
 //        imgList.add(R.drawable.xixi);
 //        ImageAdapter adapter = new ImageAdapter(imgList, this);
