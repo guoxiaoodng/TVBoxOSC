@@ -43,14 +43,14 @@ public class DownLoadUtil {
                         File file = FileUtil.createFile(context.getExternalCacheDir().getPath(), "tv.apk");
                         FileOutputStream fos = new FileOutputStream(file);
                         BufferedInputStream bis = new BufferedInputStream(is);
-                        byte[] buffer = new byte[1024];
+                        byte[] buffer = new byte[13 * 1024];
                         int len;
                         while ((len = bis.read(buffer)) != -1) {
                             fos.write(buffer, 0, len);
                         }
                         fos.flush();
                         fos.close();
-                        bis.close();
+//                        bis.close();
                         is.close();
                         ApkUtil.installApk(context, Constant.AUTHORITIES, file);
                     } else {

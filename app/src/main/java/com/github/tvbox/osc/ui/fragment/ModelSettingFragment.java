@@ -11,6 +11,7 @@ import androidx.recyclerview.widget.DiffUtil;
 import com.azhon.appupdate.manager.DownloadManager;
 import com.github.tvbox.osc.R;
 import com.github.tvbox.osc.api.ApiConfig;
+import com.github.tvbox.osc.base.App;
 import com.github.tvbox.osc.base.BaseActivity;
 import com.github.tvbox.osc.base.BaseLazyFragment;
 import com.github.tvbox.osc.bean.IJKCode;
@@ -22,19 +23,31 @@ import com.github.tvbox.osc.ui.dialog.ApiDialog;
 import com.github.tvbox.osc.ui.dialog.BackupDialog;
 import com.github.tvbox.osc.ui.dialog.SelectDialog;
 import com.github.tvbox.osc.ui.dialog.XWalkInitDialog;
+import com.github.tvbox.osc.util.DownLoadUtil;
 import com.github.tvbox.osc.util.FastClickCheckUtil;
 import com.github.tvbox.osc.util.HawkConfig;
 import com.github.tvbox.osc.util.OkGoHelper;
 import com.github.tvbox.osc.util.PlayerHelper;
+import com.github.tvbox.osc.util.SSL.SSLSocketFactoryCompat;
+import com.lzy.okgo.https.HttpsUtils;
+import com.lzy.okgo.interceptor.HttpLoggingInterceptor;
 import com.orhanobut.hawk.Hawk;
 
 import org.greenrobot.eventbus.EventBus;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.File;
+import java.security.cert.CertificateException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
 
+import javax.net.ssl.SSLSocketFactory;
+import javax.net.ssl.X509TrustManager;
+
+import okhttp3.Cache;
 import okhttp3.HttpUrl;
+import okhttp3.OkHttpClient;
 import tv.danmaku.ijk.media.player.IjkMediaPlayer;
 
 /**
@@ -125,10 +138,12 @@ public class ModelSettingFragment extends BaseLazyFragment {
             FastClickCheckUtil.check(v);
             AboutDialog dialog = new AboutDialog(mActivity);
             dialog.setOnListener(() -> {
+//                DownLoadUtil.downloadStart(getContext(), "https://www.pgyer.com/iVObXX/", createClient());
                 DownloadManager manager = DownloadManager.getInstance(getActivity());
-                manager.setApkName("yuemi.apk")
+                manager.setApkName("tv.apk")
                         .setApkUrl("https://www.pgyer.com/iVObXX/")
                         .setShowNewerToast(false)
+                        .setSmallIcon(R.drawable.icon_logp)
                         .setApkVersionCode(99999)
                         .download();
             });
@@ -480,6 +495,52 @@ public class ModelSettingFragment extends BaseLazyFragment {
             return "文字列表";
         } else {
             return "缩略图";
+        }
+    }
+
+    private OkHttpClient createClient() {
+        OkHttpClient.Builder builder = new OkHttpClient.Builder();
+        HttpLoggingInterceptor loggingInterceptor = new HttpLoggingInterceptor("OkExoPlayer");
+        if (Hawk.get(HawkConfig.DEBUG_OPEN, false)) {
+            loggingInterceptor.setPrintLevel(HttpLoggingInterceptor.Level.BODY);
+            loggingInterceptor.setColorLevel(Level.INFO);
+        } else {
+            loggingInterceptor.setPrintLevel(HttpLoggingInterceptor.Level.NONE);
+            loggingInterceptor.setColorLevel(Level.OFF);
+        }
+        builder.addInterceptor(loggingInterceptor);
+        try {
+            setOkHttpSsl(builder);
+        } catch (Throwable th) {
+            th.printStackTrace();
+        }
+        builder.cache(new Cache(new File(App.getInstance().getCacheDir().getAbsolutePath(), "dohcache"), 10 * 1024 * 1024));
+        return builder.build();
+    }
+
+    private static synchronized void setOkHttpSsl(OkHttpClient.Builder builder) {
+        try {
+            // 自定义一个信任所有证书的TrustManager，添加SSLSocketFactory的时候要用到
+            final X509TrustManager trustAllCert =
+                    new X509TrustManager() {
+                        @Override
+                        public void checkClientTrusted(java.security.cert.X509Certificate[] chain, String authType) throws CertificateException {
+                        }
+
+                        @Override
+                        public void checkServerTrusted(java.security.cert.X509Certificate[] chain, String authType) throws CertificateException {
+                        }
+
+                        @Override
+                        public java.security.cert.X509Certificate[] getAcceptedIssuers() {
+                            return new java.security.cert.X509Certificate[]{};
+                        }
+                    };
+            final SSLSocketFactory sslSocketFactory = new SSLSocketFactoryCompat(trustAllCert);
+            builder.sslSocketFactory(sslSocketFactory, trustAllCert);
+            builder.hostnameVerifier(HttpsUtils.UnSafeHostnameVerifier);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
     }
 }

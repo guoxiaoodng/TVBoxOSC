@@ -26,7 +26,8 @@ public class WebActivity extends BaseActivity {
     protected void init() {
         webView = findViewById(R.id.web_view);
         initWeb(webView);
-        webView.loadUrl("https://www.pgyer.com/iVObXX/");
+        webView.loadUrl("https://www.baidu.com/");
+//        webView.loadUrl("https://www.pgyer.com/iVObXX/");
     }
 
     private void initWeb(WebView webView) {
