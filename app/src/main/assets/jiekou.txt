@@ -10,4 +10,4 @@
 {"name":"spider2", "address":"https://notabug.org/imbig66/tv-spider-man/raw/master/%E9%85%8D%E7%BD%AE/0801.json"};
 {"name":"pastebin2", "address":"https://pastebin.com/raw/gtbKvnE1"};
 {"name":"GaiVmao", "address":"https://cdn.jsdelivr.net/gh/GaiVmao/dianshiyuan@main/yuan2.txt"};
-{"name":"YuanHsing2", "address":"https://github.com/YuanHsing/freed/raw/master/TVBox/meow.json"
+{"name":"YuanHsing2", "address":"https://github.com/YuanHsing/freed/raw/master/TVBox/meow.json"}
