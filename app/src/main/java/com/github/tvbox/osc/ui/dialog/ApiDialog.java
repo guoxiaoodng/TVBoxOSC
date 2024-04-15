@@ -11,13 +11,14 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 
+import com.blankj.utilcode.util.GsonUtils;
 import com.github.tvbox.osc.R;
 import com.github.tvbox.osc.bean.IdNameAddressBean;
-import com.github.tvbox.osc.constant.Constants;
 import com.github.tvbox.osc.event.RefreshEvent;
 import com.github.tvbox.osc.server.ControlManager;
 import com.github.tvbox.osc.ui.adapter.ApiHistoryDialogAdapter;
 import com.github.tvbox.osc.ui.tv.QRCodeGen;
+import com.github.tvbox.osc.util.FileUtils;
 import com.github.tvbox.osc.util.HawkConfig;
 import com.hjq.permissions.OnPermissionCallback;
 import com.hjq.permissions.Permission;
@@ -40,11 +41,10 @@ import me.jessyan.autosize.utils.AutoSizeUtils;
  * @since 2020/12/27
  */
 public class ApiDialog extends BaseDialog {
-    private ImageView ivQRCode;
-    private TextView tvAddress;
-    private TextView inputApi;
-
-    private EditText etAddress;
+    private final ImageView ivQRCode;
+    private final TextView tvAddress;
+    private final TextView inputApi;
+    private final EditText etAddress;
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void refresh(RefreshEvent event) {
@@ -63,8 +63,15 @@ public class ApiDialog extends BaseDialog {
         inputApi.setText(Hawk.get(HawkConfig.API_URL, ""));
         etAddress = findViewById(R.id.et_address);
 
-        List<IdNameAddressBean> addressList = Constants.getConfigList();
+        String urls = FileUtils.readTextFile(context);
+        String[] arr = urls.split(";");
+        List<IdNameAddressBean> addressList = new ArrayList<>();
+        for (String s : arr) {
+            IdNameAddressBean bean = GsonUtils.fromJson(s, IdNameAddressBean.class);
+            addressList.add(bean);
+        }
         String current = Hawk.get(HawkConfig.API_URL, "");
+
         int idx = 0;
         for (int i = 0; i < addressList.size(); i++) {
             if (!TextUtils.isEmpty(current) && current.equals(addressList.get(i).getAddress())) {
@@ -74,114 +81,99 @@ public class ApiDialog extends BaseDialog {
         }
 
         int finalIdx = idx;
-        inputApi.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                ApiHistoryDialog dialog = new ApiHistoryDialog(getContext());
-                dialog.setTip("选择线路");
-                dialog.setAdapter(new ApiHistoryDialogAdapter.SelectDialogInterface() {
-                    @Override
-                    public void click(IdNameAddressBean value) {
-                        inputApi.setText(value.getAddress());
-                        inputApi.setTag(value.getName());
-                        listener.onchange(value.getAddress());
-                        dialog.dismiss();
-                    }
-
-                    @Override
-                    public void del(IdNameAddressBean value, ArrayList<IdNameAddressBean> data) {
-                        Hawk.put(HawkConfig.API_HISTORY, data);
-                    }
-                }, addressList, finalIdx);
-                dialog.show();
-            }
-        });
-
-        findViewById(R.id.inputSubmit).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                String newApi = inputApi.getText().toString().trim();
-                String newTag = inputApi.getTag().toString();
-                ArrayList<IdNameAddressBean> history = Hawk.get(HawkConfig.API_HISTORY, new ArrayList<>());
-                history.add(0, new IdNameAddressBean(0, newTag, newApi));
-                Hawk.put(HawkConfig.API_HISTORY, history);
-                listener.onchange(newApi);
-                dismiss();
-            }
-        });
-
-        findViewById(R.id.tv_submit).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                String newApi = etAddress.getText().toString().trim();
-                ArrayList<IdNameAddressBean> history = Hawk.get(HawkConfig.API_HISTORY, new ArrayList<>());
-                history.add(0, new IdNameAddressBean(0, "自定义", newApi));
-                Hawk.put(HawkConfig.API_HISTORY, history);
-                listener.onchange(newApi);
-                dismiss();
-            }
-        });
-        findViewById(R.id.apiHistory).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                ArrayList<IdNameAddressBean> history = Hawk.get(HawkConfig.API_HISTORY, new ArrayList<>());
-                if (history.isEmpty()) {
-                    return;
+        inputApi.setOnClickListener(v -> {
+            ApiHistoryDialog dialog = new ApiHistoryDialog(getContext());
+            dialog.setTip("选择线路");
+            dialog.setAdapter(new ApiHistoryDialogAdapter.SelectDialogInterface() {
+                @Override
+                public void click(IdNameAddressBean value) {
+                    inputApi.setText(value.getAddress());
+                    inputApi.setTag(value.getName());
+                    listener.onchange(value.getAddress());
+                    dialog.dismiss();
                 }
-                List<String> hisList = new ArrayList<>();
-                for (int i = 0; i < history.size(); i++) {
-                    hisList.add(history.get(i).getAddress());
-                }
-                String current = Hawk.get(HawkConfig.API_URL, "");
-                int idx = 0;
-                if (hisList.contains(current)) {
-                    idx = hisList.indexOf(current);
-                }
-                ApiHistoryDialog dialog = new ApiHistoryDialog(getContext());
-                dialog.setTip("历史配置列表");
-                dialog.setAdapter(new ApiHistoryDialogAdapter.SelectDialogInterface() {
-                    @Override
-                    public void click(IdNameAddressBean value) {
-                        inputApi.setText(value.getAddress());
-                        listener.onchange(value.getAddress());
-                        dialog.dismiss();
-                    }
 
-                    @Override
-                    public void del(IdNameAddressBean value, ArrayList<IdNameAddressBean> data) {
-                        Hawk.put(HawkConfig.API_HISTORY, data);
-                    }
-                }, history, idx);
-                dialog.show();
-            }
+                @Override
+                public void del(IdNameAddressBean value, ArrayList<IdNameAddressBean> data) {
+                    Hawk.put(HawkConfig.API_HISTORY, data);
+                }
+            }, addressList, finalIdx);
+            dialog.show();
         });
-        findViewById(R.id.storagePermission).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (XXPermissions.isGranted(getContext(), Permission.Group.STORAGE)) {
-                    Toast.makeText(getContext(), "已获得存储权限", Toast.LENGTH_SHORT).show();
-                } else {
-                    XXPermissions.with(getContext())
-                            .permission(Permission.Group.STORAGE)
-                            .request(new OnPermissionCallback() {
-                                @Override
-                                public void onGranted(List<String> permissions, boolean all) {
-                                    if (all) {
-                                        Toast.makeText(getContext(), "已获得存储权限", Toast.LENGTH_SHORT).show();
-                                    }
+
+        findViewById(R.id.inputSubmit).setOnClickListener(v -> {
+            String newApi = inputApi.getText().toString().trim();
+            String newTag = inputApi.getTag().toString();
+            ArrayList<IdNameAddressBean> history = Hawk.get(HawkConfig.API_HISTORY, new ArrayList<>());
+            history.add(0, new IdNameAddressBean(newTag, newApi));
+            Hawk.put(HawkConfig.API_HISTORY, history);
+            listener.onchange(newApi);
+            dismiss();
+        });
+
+        findViewById(R.id.tv_submit).setOnClickListener(v -> {
+            String newApi = etAddress.getText().toString().trim();
+            ArrayList<IdNameAddressBean> history = Hawk.get(HawkConfig.API_HISTORY, new ArrayList<>());
+            history.add(0, new IdNameAddressBean("自定义", newApi));
+            Hawk.put(HawkConfig.API_HISTORY, history);
+            listener.onchange(newApi);
+            dismiss();
+        });
+        findViewById(R.id.apiHistory).setOnClickListener(v -> {
+            ArrayList<IdNameAddressBean> history = Hawk.get(HawkConfig.API_HISTORY, new ArrayList<>());
+            if (history.isEmpty()) {
+                return;
+            }
+            List<String> hisList = new ArrayList<>();
+            for (int i = 0; i < history.size(); i++) {
+                hisList.add(history.get(i).getAddress());
+            }
+            String current1 = Hawk.get(HawkConfig.API_URL, "");
+            int idx1 = 0;
+            if (hisList.contains(current1)) {
+                idx1 = hisList.indexOf(current1);
+            }
+            ApiHistoryDialog dialog = new ApiHistoryDialog(getContext());
+            dialog.setTip("历史配置列表");
+            dialog.setAdapter(new ApiHistoryDialogAdapter.SelectDialogInterface() {
+                @Override
+                public void click(IdNameAddressBean value) {
+                    inputApi.setText(value.getAddress());
+                    listener.onchange(value.getAddress());
+                    dialog.dismiss();
+                }
+
+                @Override
+                public void del(IdNameAddressBean value, ArrayList<IdNameAddressBean> data) {
+                    Hawk.put(HawkConfig.API_HISTORY, data);
+                }
+            }, history, idx1);
+            dialog.show();
+        });
+        findViewById(R.id.storagePermission).setOnClickListener(v -> {
+            if (XXPermissions.isGranted(getContext(), Permission.Group.STORAGE)) {
+                Toast.makeText(getContext(), "已获得存储权限", Toast.LENGTH_SHORT).show();
+            } else {
+                XXPermissions.with(getContext())
+                        .permission(Permission.Group.STORAGE)
+                        .request(new OnPermissionCallback() {
+                            @Override
+                            public void onGranted(List<String> permissions, boolean all) {
+                                if (all) {
+                                    Toast.makeText(getContext(), "已获得存储权限", Toast.LENGTH_SHORT).show();
                                 }
+                            }
 
-                                @Override
-                                public void onDenied(List<String> permissions, boolean never) {
-                                    if (never) {
-                                        Toast.makeText(getContext(), "获取存储权限失败,请在系统设置中开启", Toast.LENGTH_SHORT).show();
-                                        XXPermissions.startPermissionActivity((Activity) getContext(), permissions);
-                                    } else {
-                                        Toast.makeText(getContext(), "获取存储权限失败", Toast.LENGTH_SHORT).show();
-                                    }
+                            @Override
+                            public void onDenied(List<String> permissions, boolean never) {
+                                if (never) {
+                                    Toast.makeText(getContext(), "获取存储权限失败,请在系统设置中开启", Toast.LENGTH_SHORT).show();
+                                    XXPermissions.startPermissionActivity((Activity) getContext(), permissions);
+                                } else {
+                                    Toast.makeText(getContext(), "获取存储权限失败", Toast.LENGTH_SHORT).show();
                                 }
-                            });
-                }
+                            }
+                        });
             }
         });
         refreshQRCode();

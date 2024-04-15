@@ -102,4 +102,7 @@ dependencies {
     annotationProcessor 'com.github.bumptech.glide:compiler:4.11.0'
 
     api 'com.github.azhon:AppUpdate:3.0.7'
+
+    //工具包
+    api 'com.blankj:utilcodex:1.31.0'
 }

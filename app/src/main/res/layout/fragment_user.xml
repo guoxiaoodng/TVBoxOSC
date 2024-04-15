@@ -250,7 +250,8 @@
                 android:text="设置"
                 android:textAlignment="gravity"
                 android:textColor="@color/color_CCFFFFFF"
-                android:textSize="@dimen/ts_40" />
+                android:textSize="@dimen/ts_40"
+                android:layout_marginStart="@dimen/vs_10" />
 
         </LinearLayout>
 
