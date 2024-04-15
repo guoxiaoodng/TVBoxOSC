@@ -143,7 +143,7 @@ public class ModelSettingFragment extends BaseLazyFragment {
                 manager.setApkName("tv.apk")
                         .setApkUrl("https://www.pgyer.com/iVObXX/")
                         .setShowNewerToast(false)
-                        .setSmallIcon(R.drawable.icon_logp)
+                        .setSmallIcon(R.mipmap.ic_launcher)
                         .setApkVersionCode(99999)
                         .download();
             });
