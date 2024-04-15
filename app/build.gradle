@@ -49,14 +49,6 @@ android {
             storePassword '931203'
             v2SigningEnabled true
         }
-
-        debug {
-            keyAlias 'key0'
-            keyPassword '931203'
-            storeFile file('key-store')
-            storePassword '931203'
-            v2SigningEnabled true
-        }
     }
 
     compileOptions {
