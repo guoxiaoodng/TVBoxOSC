@@ -8,8 +8,10 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.DiffUtil;
 
+import com.azhon.appupdate.manager.DownloadManager;
 import com.github.tvbox.osc.R;
 import com.github.tvbox.osc.api.ApiConfig;
+import com.github.tvbox.osc.base.App;
 import com.github.tvbox.osc.base.BaseActivity;
 import com.github.tvbox.osc.base.BaseLazyFragment;
 import com.github.tvbox.osc.bean.IJKCode;
@@ -21,19 +23,31 @@ import com.github.tvbox.osc.ui.dialog.ApiDialog;
 import com.github.tvbox.osc.ui.dialog.BackupDialog;
 import com.github.tvbox.osc.ui.dialog.SelectDialog;
 import com.github.tvbox.osc.ui.dialog.XWalkInitDialog;
+import com.github.tvbox.osc.util.DownLoadUtil;
 import com.github.tvbox.osc.util.FastClickCheckUtil;
 import com.github.tvbox.osc.util.HawkConfig;
 import com.github.tvbox.osc.util.OkGoHelper;
 import com.github.tvbox.osc.util.PlayerHelper;
+import com.github.tvbox.osc.util.SSL.SSLSocketFactoryCompat;
+import com.lzy.okgo.https.HttpsUtils;
+import com.lzy.okgo.interceptor.HttpLoggingInterceptor;
 import com.orhanobut.hawk.Hawk;
 
 import org.greenrobot.eventbus.EventBus;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.File;
+import java.security.cert.CertificateException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
 
+import javax.net.ssl.SSLSocketFactory;
+import javax.net.ssl.X509TrustManager;
+
+import okhttp3.Cache;
 import okhttp3.HttpUrl;
+import okhttp3.OkHttpClient;
 import tv.danmaku.ijk.media.player.IjkMediaPlayer;
 
 /**
@@ -109,63 +123,61 @@ public class ModelSettingFragment extends BaseLazyFragment {
                 if (!useSystem) {
                     Toast.makeText(mContext, "注意: XWalkView只适用于部分低Android版本，Android5.0以上推荐使用系统自带", Toast.LENGTH_LONG).show();
                     XWalkInitDialog dialog = new XWalkInitDialog(mContext);
-                    dialog.setOnListener(new XWalkInitDialog.OnListener() {
-                        @Override
-                        public void onchange() {
-                        }
+                    dialog.setOnListener(() -> {
                     });
                     dialog.show();
                 }
             }
         });
-        findViewById(R.id.llBackup).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                FastClickCheckUtil.check(v);
-                BackupDialog dialog = new BackupDialog(mActivity);
-                dialog.show();
-            }
+        findViewById(R.id.llBackup).setOnClickListener(v -> {
+            FastClickCheckUtil.check(v);
+            BackupDialog dialog = new BackupDialog(mActivity);
+            dialog.show();
         });
-        findViewById(R.id.llAbout).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                FastClickCheckUtil.check(v);
-                AboutDialog dialog = new AboutDialog(mActivity);
-                dialog.show();
-            }
+        findViewById(R.id.llAbout).setOnClickListener(v -> {
+            FastClickCheckUtil.check(v);
+            AboutDialog dialog = new AboutDialog(mActivity);
+            dialog.setOnListener(() -> {
+//                DownLoadUtil.downloadStart(getContext(), "https://www.pgyer.com/iVObXX/", createClient());
+                DownloadManager manager = DownloadManager.getInstance(getActivity());
+                manager.setApkName("tv.apk")
+                        .setApkUrl("https://www.pgyer.com/iVObXX/")
+                        .setShowNewerToast(false)
+                        .setSmallIcon(R.drawable.icon_logp)
+                        .setApkVersionCode(99999)
+                        .download();
+            });
+            dialog.show();
         });
-        findViewById(R.id.llHomeApi).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                FastClickCheckUtil.check(v);
-                List<SourceBean> sites = ApiConfig.get().getSourceBeanList();
-                if (sites.size() > 0) {
-                    SelectDialog<SourceBean> dialog = new SelectDialog<>(mActivity);
-                    dialog.setTip("请选择首页数据源");
-                    dialog.setAdapter(new SelectDialogAdapter.SelectDialogInterface<SourceBean>() {
-                        @Override
-                        public void click(SourceBean value, int pos) {
-                            ApiConfig.get().setSourceBean(value);
-                            tvHomeApi.setText(ApiConfig.get().getHomeSourceBean().getName());
-                        }
+        findViewById(R.id.llHomeApi).setOnClickListener(v -> {
+            FastClickCheckUtil.check(v);
+            List<SourceBean> sites = ApiConfig.get().getSourceBeanList();
+            if (sites.size() > 0) {
+                SelectDialog<SourceBean> dialog = new SelectDialog<>(mActivity);
+                dialog.setTip("请选择首页数据源");
+                dialog.setAdapter(new SelectDialogAdapter.SelectDialogInterface<SourceBean>() {
+                    @Override
+                    public void click(SourceBean value, int pos) {
+                        ApiConfig.get().setSourceBean(value);
+                        tvHomeApi.setText(ApiConfig.get().getHomeSourceBean().getName());
+                    }
 
-                        @Override
-                        public String getDisplay(SourceBean val) {
-                            return val.getName();
-                        }
-                    }, new DiffUtil.ItemCallback<SourceBean>() {
-                        @Override
-                        public boolean areItemsTheSame(@NonNull @NotNull SourceBean oldItem, @NonNull @NotNull SourceBean newItem) {
-                            return oldItem == newItem;
-                        }
+                    @Override
+                    public String getDisplay(SourceBean val) {
+                        return val.getName();
+                    }
+                }, new DiffUtil.ItemCallback<SourceBean>() {
+                    @Override
+                    public boolean areItemsTheSame(@NonNull @NotNull SourceBean oldItem, @NonNull @NotNull SourceBean newItem) {
+                        return oldItem == newItem;
+                    }
 
-                        @Override
-                        public boolean areContentsTheSame(@NonNull @NotNull SourceBean oldItem, @NonNull @NotNull SourceBean newItem) {
-                            return oldItem.getKey().equals(newItem.getKey());
-                        }
-                    }, sites, sites.indexOf(ApiConfig.get().getHomeSourceBean()));
-                    dialog.show();
-                }
+                    @Override
+                    public boolean areContentsTheSame(@NonNull @NotNull SourceBean oldItem, @NonNull @NotNull SourceBean newItem) {
+                        return oldItem.getKey().equals(newItem.getKey());
+                    }
+                }, sites, sites.indexOf(ApiConfig.get().getHomeSourceBean()));
+                dialog.show();
             }
         });
         findViewById(R.id.llDns).setOnClickListener(new View.OnClickListener() {
@@ -483,6 +495,52 @@ public class ModelSettingFragment extends BaseLazyFragment {
             return "文字列表";
         } else {
             return "缩略图";
+        }
+    }
+
+    private OkHttpClient createClient() {
+        OkHttpClient.Builder builder = new OkHttpClient.Builder();
+        HttpLoggingInterceptor loggingInterceptor = new HttpLoggingInterceptor("OkExoPlayer");
+        if (Hawk.get(HawkConfig.DEBUG_OPEN, false)) {
+            loggingInterceptor.setPrintLevel(HttpLoggingInterceptor.Level.BODY);
+            loggingInterceptor.setColorLevel(Level.INFO);
+        } else {
+            loggingInterceptor.setPrintLevel(HttpLoggingInterceptor.Level.NONE);
+            loggingInterceptor.setColorLevel(Level.OFF);
+        }
+        builder.addInterceptor(loggingInterceptor);
+        try {
+            setOkHttpSsl(builder);
+        } catch (Throwable th) {
+            th.printStackTrace();
+        }
+        builder.cache(new Cache(new File(App.getInstance().getCacheDir().getAbsolutePath(), "dohcache"), 10 * 1024 * 1024));
+        return builder.build();
+    }
+
+    private static synchronized void setOkHttpSsl(OkHttpClient.Builder builder) {
+        try {
+            // 自定义一个信任所有证书的TrustManager，添加SSLSocketFactory的时候要用到
+            final X509TrustManager trustAllCert =
+                    new X509TrustManager() {
+                        @Override
+                        public void checkClientTrusted(java.security.cert.X509Certificate[] chain, String authType) throws CertificateException {
+                        }
+
+                        @Override
+                        public void checkServerTrusted(java.security.cert.X509Certificate[] chain, String authType) throws CertificateException {
+                        }
+
+                        @Override
+                        public java.security.cert.X509Certificate[] getAcceptedIssuers() {
+                            return new java.security.cert.X509Certificate[]{};
+                        }
+                    };
+            final SSLSocketFactory sslSocketFactory = new SSLSocketFactoryCompat(trustAllCert);
+            builder.sslSocketFactory(sslSocketFactory, trustAllCert);
+            builder.hostnameVerifier(HttpsUtils.UnSafeHostnameVerifier);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
     }
 }

@@ -1,5 +1,10 @@
 package com.github.tvbox.osc.util;
 
+import android.content.Context;
+import android.os.Build;
+
+import com.github.tvbox.osc.constant.Constants;
+
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.File;
@@ -8,6 +13,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
 
 public class FileUtils {
 
@@ -65,5 +71,21 @@ public class FileUtils {
             }
         }
         file.delete();
+    }
+
+    public static String readTextFile(Context context) {
+        try {
+            InputStream inputStream = context.getAssets().open("jiekou.txt");
+            int size = inputStream.available();
+            byte[] buffer = new byte[size];
+            inputStream.read(buffer);
+            inputStream.close();
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+                return new String(buffer, StandardCharsets.UTF_8);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return Constants.DEFAULT_URL;
     }
 }

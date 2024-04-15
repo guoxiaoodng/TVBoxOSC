@@ -8,6 +8,7 @@ import android.text.TextUtils;
 import com.github.tvbox.osc.api.ApiConfig;
 import com.github.tvbox.osc.bean.MovieSort;
 import com.github.tvbox.osc.bean.SourceBean;
+import com.github.tvbox.osc.constant.Constants;
 import com.github.tvbox.osc.server.ControlManager;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -48,7 +49,7 @@ public class DefaultConfig {
             }
         }
         if (withMy)
-            data.add(0, new MovieSort.SortData("my0", "我的"));
+            data.add(0, new MovieSort.SortData("my0", Constants.getTabName()));
         Collections.sort(data);
         return data;
     }

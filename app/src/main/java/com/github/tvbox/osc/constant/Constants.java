@@ -8,10 +8,19 @@ import java.util.List;
 public class Constants {
     public static List<IdNameAddressBean> getConfigList() {
         List<IdNameAddressBean> addressList = new ArrayList<>();
-        addressList.add(new IdNameAddressBean(0, "南风", "https://agit.ai/Yoursmile7/TVBox/raw/branch/master/XC.json"));
-        addressList.add(new IdNameAddressBean(1, "未命名", "https://raw.liucn.cc/box/m.json"));
-        addressList.add(new IdNameAddressBean(2, "CH猫友", "https://freed.yuanhsing.cf/TVBox/meowcf.json"));
+        addressList.add(new IdNameAddressBean("巧记", "http://pandown.pro/tvbox/tvbox.json"));
+        addressList.add(new IdNameAddressBean("胖虎", "https://notabug.org/imbig66/tv-spider-man/raw/master/配置/0801.json"));
+        addressList.add(new IdNameAddressBean("欧歌", "http://tv.nxog.top/m/"));
+        addressList.add(new IdNameAddressBean("Pandown", "http://pandown.pro/tvbox/tvbox.json"));
+        addressList.add(new IdNameAddressBean("MEOW", "https://github.com/YuanHsing/freed/raw/master/TVBox/meow.json"));
+
 
         return addressList;
+    }
+
+    public static String DEFAULT_URL = "http://pandown.pro/tvbox/tvbox.json";
+
+    public static String getTabName() {
+        return "茜茜";
     }
 }
