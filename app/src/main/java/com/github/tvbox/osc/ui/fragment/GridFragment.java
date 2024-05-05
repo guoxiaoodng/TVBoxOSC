@@ -91,8 +91,6 @@ public class GridFragment extends BaseLazyFragment {
         mGridView.setOnInBorderKeyEventListener(new TvRecyclerView.OnInBorderKeyEventListener() {
             @Override
             public boolean onInBorderKeyEvent(int direction, View focused) {
-                if (direction == View.FOCUS_UP) {
-                }
                 return false;
             }
         });

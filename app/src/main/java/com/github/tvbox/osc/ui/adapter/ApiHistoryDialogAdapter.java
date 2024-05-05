@@ -22,7 +22,7 @@ import java.util.List;
 
 public class ApiHistoryDialogAdapter extends ListAdapter<IdNameAddressBean, ApiHistoryDialogAdapter.SelectViewHolder> {
 
-    class SelectViewHolder extends RecyclerView.ViewHolder {
+    static class SelectViewHolder extends RecyclerView.ViewHolder {
 
         public SelectViewHolder(@NonNull @NotNull View itemView) {
             super(itemView);
@@ -35,12 +35,11 @@ public class ApiHistoryDialogAdapter extends ListAdapter<IdNameAddressBean, ApiH
         void del(IdNameAddressBean value, ArrayList<IdNameAddressBean> data);
     }
 
-
-    private ArrayList<IdNameAddressBean> data = new ArrayList<>();
+    private final ArrayList<IdNameAddressBean> data = new ArrayList<>();
 
     private IdNameAddressBean select = new IdNameAddressBean();
 
-    private SelectDialogInterface dialogInterface = null;
+    private final SelectDialogInterface dialogInterface;
 
     public ApiHistoryDialogAdapter(SelectDialogInterface dialogInterface) {
         super(new DiffUtil.ItemCallback<IdNameAddressBean>() {
@@ -58,6 +57,7 @@ public class ApiHistoryDialogAdapter extends ListAdapter<IdNameAddressBean, ApiH
         this.dialogInterface = dialogInterface;
     }
 
+    @SuppressLint("NotifyDataSetChanged")
     public void setData(List<IdNameAddressBean> newData, int defaultSelect) {
         data.clear();
         data.addAll(newData);
@@ -70,10 +70,10 @@ public class ApiHistoryDialogAdapter extends ListAdapter<IdNameAddressBean, ApiH
         return data.size();
     }
 
-
+    @NonNull
     @Override
     public ApiHistoryDialogAdapter.SelectViewHolder onCreateViewHolder(@NonNull @NotNull ViewGroup parent, int viewType) {
-        return new ApiHistoryDialogAdapter.SelectViewHolder(LayoutInflater.from(parent.getContext()).inflate(R.layout.item_dialog_api_history, parent, false));
+        return new SelectViewHolder(LayoutInflater.from(parent.getContext()).inflate(R.layout.item_dialog_api_history, parent, false));
     }
 
     @SuppressLint("SetTextI18n")

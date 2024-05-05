@@ -11,11 +11,8 @@ import org.jetbrains.annotations.NotNull;
 
 public class AboutDialog extends BaseDialog {
 
-    private Context mContext;
-
     public AboutDialog(@NonNull @NotNull Context context) {
         super(context);
-        this.mContext = context;
         setContentView(R.layout.dialog_about);
     }
 

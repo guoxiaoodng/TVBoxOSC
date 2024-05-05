@@ -1,5 +1,6 @@
 package com.github.tvbox.osc.ui.activity;
 
+import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.app.Activity;
 import android.content.Context;
@@ -77,6 +78,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -109,11 +111,9 @@ public class PlayActivity extends BaseActivity {
         mHandler = new Handler(new Handler.Callback() {
             @Override
             public boolean handleMessage(@NonNull Message msg) {
-                switch (msg.what) {
-                    case 100:
-                        stopParse();
-                        errorWithRetry("嗅探错误", false);
-                        break;
+                if (msg.what == 100) {
+                    stopParse();
+                    errorWithRetry("嗅探错误", false);
                 }
                 return false;
             }
@@ -140,14 +140,12 @@ public class PlayActivity extends BaseActivity {
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
-                long skip = st * 1000;
+                long skip = st * 1000L;
                 if (CacheManager.getCache(MD5.string2MD5(url)) == null) {
                     return skip;
                 }
                 long rec = (long) CacheManager.getCache(MD5.string2MD5(url));
-                if (rec < skip)
-                    return skip;
-                return rec;
+                return Math.max(rec, skip);
             }
         };
         mVideoView.setProgressManager(progressManager);
@@ -231,7 +229,7 @@ public class PlayActivity extends BaseActivity {
                         try {
                             int playerType = mVodPlayerCfg.getInt("pl");
                             if (playerType >= 10) {
-                                VodInfo.VodSeries vs = mVodInfo.seriesMap.get(mVodInfo.playFlag).get(mVodInfo.playIndex);
+                                VodInfo.VodSeries vs = Objects.requireNonNull(mVodInfo.seriesMap.get(mVodInfo.playFlag)).get(mVodInfo.playIndex);
                                 String playTitle = mVodInfo.name + " " + vs.name;
                                 setTip("调用外部播放器" + PlayerHelper.getPlayerName(playerType) + "进行播放", true, false);
                                 boolean callResult = false;
@@ -293,7 +291,7 @@ public class PlayActivity extends BaseActivity {
                                     }
                                     headers.put(key, hds.getString(key));
                                 }
-                            } catch (Throwable th) {
+                            } catch (Throwable ignored) {
 
                             }
                         }
@@ -354,7 +352,7 @@ public class PlayActivity extends BaseActivity {
             if (!mVodPlayerCfg.has("et")) {
                 mVodPlayerCfg.put("et", 0);
             }
-        } catch (Throwable th) {
+        } catch (Throwable ignored) {
 
         }
         mController.setPlayerConfig(mVodPlayerCfg);
@@ -386,7 +384,6 @@ public class PlayActivity extends BaseActivity {
         }
     }
 
-
     @Override
     protected void onPause() {
         super.onPause();
@@ -412,11 +409,11 @@ public class PlayActivity extends BaseActivity {
     private SourceBean sourceBean;
 
     private void playNext() {
-        boolean hasNext = true;
+        boolean hasNext;
         if (mVodInfo == null || mVodInfo.seriesMap.get(mVodInfo.playFlag) == null) {
             hasNext = false;
         } else {
-            hasNext = mVodInfo.playIndex + 1 < mVodInfo.seriesMap.get(mVodInfo.playFlag).size();
+            hasNext = mVodInfo.playIndex + 1 < Objects.requireNonNull(mVodInfo.seriesMap.get(mVodInfo.playFlag)).size();
         }
         if (!hasNext) {
             Toast.makeText(this, "已经是最后一集了!", Toast.LENGTH_SHORT).show();
@@ -455,7 +452,7 @@ public class PlayActivity extends BaseActivity {
     }
 
     public void play() {
-        VodInfo.VodSeries vs = mVodInfo.seriesMap.get(mVodInfo.playFlag).get(mVodInfo.playIndex);
+        VodInfo.VodSeries vs = Objects.requireNonNull(mVodInfo.seriesMap.get(mVodInfo.playFlag)).get(mVodInfo.playIndex);
         EventBus.getDefault().post(new RefreshEvent(RefreshEvent.TYPE_REFRESH, mVodInfo.playIndex));
         setTip("正在获取播放信息", true, false);
         String playTitleInfo = mVodInfo.name + " " + vs.name;
@@ -524,7 +521,7 @@ public class PlayActivity extends BaseActivity {
         doParse(parseBean);
     }
 
-    JSONObject jsonParse(String input, String json) throws JSONException {
+    JSONObject jsonParse(String json) throws JSONException {
         JSONObject jsonPlayData = new JSONObject(json);
         String url = jsonPlayData.getString("url");
         String msg = jsonPlayData.optString("msg", "");
@@ -581,6 +578,7 @@ public class PlayActivity extends BaseActivity {
                 JSONObject jsonObject = new JSONObject(pb.getExt());
                 if (jsonObject.has("header")) {
                     JSONObject headerJson = jsonObject.optJSONObject("header");
+                    assert headerJson != null;
                     Iterator<String> keys = headerJson.keys();
                     while (keys.hasNext()) {
                         String key = keys.next();
@@ -607,7 +605,7 @@ public class PlayActivity extends BaseActivity {
                         public void onSuccess(Response<String> response) {
                             String json = response.body();
                             try {
-                                JSONObject rs = jsonParse(webUrl, json);
+                                JSONObject rs = jsonParse(json);
                                 HashMap<String, String> headers = null;
                                 if (rs.has("header")) {
                                     try {
@@ -620,7 +618,7 @@ public class PlayActivity extends BaseActivity {
                                             }
                                             headers.put(key, hds.getString(key));
                                         }
-                                    } catch (Throwable th) {
+                                    } catch (Throwable ignored) {
 
                                     }
                                 }
@@ -665,7 +663,7 @@ public class PlayActivity extends BaseActivity {
                                     }
                                     headers.put(key, hds.getString(key));
                                 }
-                            } catch (Throwable th) {
+                            } catch (Throwable ignored) {
 
                             }
                         }
@@ -693,7 +691,7 @@ public class PlayActivity extends BaseActivity {
             LinkedHashMap<String, HashMap<String, String>> jxs = new LinkedHashMap<>();
             String extendName = "";
             for (ParseBean p : ApiConfig.get().getParseBeanList()) {
-                HashMap data = new HashMap<String, String>();
+                HashMap<String, String> data = new HashMap<>();
                 data.put("url", p.getUrl());
                 if (p.getUrl().equals(pb.getUrl())) {
                     extendName = p.getName();
@@ -735,7 +733,7 @@ public class PlayActivity extends BaseActivity {
                                         }
                                         headers.put(key, hds.getString(key));
                                     }
-                                } catch (Throwable th) {
+                                } catch (Throwable ignored) {
 
                                 }
                             }
@@ -757,10 +755,8 @@ public class PlayActivity extends BaseActivity {
 
     // webview
     private XWalkView mXwalkWebView;
-    private XWalkWebClient mX5WebClient;
     private WebView mSysWebView;
-    private SysWebClient mSysWebClient;
-    private Map<String, Boolean> loadedUrls = new HashMap<>();
+    private final Map<String, Boolean> loadedUrls = new HashMap<>();
     private boolean loadFound = false;
 
     void loadWebView(String url) {
@@ -899,6 +895,7 @@ public class PlayActivity extends BaseActivity {
         }
     }
 
+    @SuppressLint("SetJavaScriptEnabled")
     private void configWebViewSys(WebView webView) {
         if (webView == null) {
             return;
@@ -919,17 +916,12 @@ public class PlayActivity extends BaseActivity {
         settings.setAllowUniversalAccessFromFileURLs(true);
         settings.setAllowFileAccessFromFileURLs(true);
         settings.setDatabaseEnabled(true);
-        settings.setDomStorageEnabled(true);
         settings.setJavaScriptEnabled(true);
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
             settings.setMediaPlaybackRequiresUserGesture(false);
         }
-        if (Hawk.get(HawkConfig.DEBUG_OPEN, false)) {
-            settings.setBlockNetworkImage(false);
-        } else {
-            settings.setBlockNetworkImage(true);
-        }
+        settings.setBlockNetworkImage(!Hawk.get(HawkConfig.DEBUG_OPEN, false));
         settings.setUseWideViewPort(true);
         settings.setDomStorageEnabled(true);
         settings.setJavaScriptCanOpenWindowsAutomatically(true);
@@ -968,13 +960,14 @@ public class PlayActivity extends BaseActivity {
                 return true;
             }
         });
-        mSysWebClient = new SysWebClient();
+        SysWebClient mSysWebClient = new SysWebClient();
         webView.setWebViewClient(mSysWebClient);
         webView.setBackgroundColor(Color.BLACK);
     }
 
     private class SysWebClient extends WebViewClient {
 
+        @SuppressLint("WebViewClientOnReceivedSslError")
         @Override
         public void onReceivedSslError(WebView webView, SslErrorHandler sslErrorHandler, SslError sslError) {
             sslErrorHandler.proceed();
@@ -995,7 +988,7 @@ public class PlayActivity extends BaseActivity {
                 ad = AdBlocker.isAd(url);
                 loadedUrls.put(url, ad);
             } else {
-                ad = loadedUrls.get(url);
+                ad = Boolean.TRUE.equals(loadedUrls.get(url));
             }
 
             if (!ad && !loadFound) {
@@ -1033,7 +1026,7 @@ public class PlayActivity extends BaseActivity {
             String url = "";
             try {
                 url = request.getUrl().toString();
-            } catch (Throwable th) {
+            } catch (Throwable ignored) {
 
             }
             HashMap<String, String> webHeaders = new HashMap<>();
@@ -1046,7 +1039,7 @@ public class PlayActivity extends BaseActivity {
                         webHeaders.put(k, " " + hds.get(k));
                     }
                 }
-            } catch (Throwable th) {
+            } catch (Throwable ignored) {
 
             }
             WebResourceResponse response = checkIsVideo(url, webHeaders);
@@ -1062,6 +1055,7 @@ public class PlayActivity extends BaseActivity {
         }
     }
 
+    @SuppressLint("SetJavaScriptEnabled")
     private void configWebViewX5(XWalkView webView) {
         if (webView == null) {
             return;
@@ -1084,11 +1078,7 @@ public class PlayActivity extends BaseActivity {
         settings.setDomStorageEnabled(true);
         settings.setJavaScriptEnabled(true);
 
-        if (Hawk.get(HawkConfig.DEBUG_OPEN, false)) {
-            settings.setBlockNetworkImage(false);
-        } else {
-            settings.setBlockNetworkImage(true);
-        }
+        settings.setBlockNetworkImage(!Hawk.get(HawkConfig.DEBUG_OPEN, false));
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
             settings.setMediaPlaybackRequiresUserGesture(false);
@@ -1125,7 +1115,7 @@ public class PlayActivity extends BaseActivity {
                 return true;
             }
         });
-        mX5WebClient = new XWalkWebClient(webView);
+        XWalkWebClient mX5WebClient = new XWalkWebClient(webView);
         webView.setResourceClient(mX5WebClient);
     }
 
@@ -1167,7 +1157,7 @@ public class PlayActivity extends BaseActivity {
                 ad = AdBlocker.isAd(url);
                 loadedUrls.put(url, ad);
             } else {
-                ad = loadedUrls.get(url);
+                ad = Boolean.TRUE.equals(loadedUrls.get(url));
             }
             if (!ad && !loadFound) {
                 if (checkVideoFormat(url)) {
@@ -1183,10 +1173,10 @@ public class PlayActivity extends BaseActivity {
                                 webHeaders.put(k, " " + hds.get(k));
                             }
                         }
-                    } catch (Throwable th) {
+                    } catch (Throwable ignored) {
 
                     }
-                    if (webHeaders != null && !webHeaders.isEmpty()) {
+                    if (!webHeaders.isEmpty()) {
                         playUrl(url, webHeaders);
                     } else {
                         playUrl(url, null);

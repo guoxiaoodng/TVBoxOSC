@@ -16,7 +16,7 @@ public class AppManager {
     }
 
     private static class SingleHolder {
-        private static AppManager instance = new AppManager();
+        private static final AppManager instance = new AppManager();
     }
 
     public static AppManager getInstance() {
@@ -28,7 +28,7 @@ public class AppManager {
      */
     public void addActivity(Activity activity) {
         if (activityStack == null) {
-            activityStack = new Stack<Activity>();
+            activityStack = new Stack<>();
         }
         activityStack.add(activity);
     }
@@ -47,8 +47,7 @@ public class AppManager {
      * 获取当前Activity（堆栈中最后一个压入的）
      */
     public Activity currentActivity() {
-        Activity activity = activityStack.lastElement();
-        return activity;
+        return activityStack.lastElement();
     }
 
     /**
@@ -64,7 +63,6 @@ public class AppManager {
     public void finishActivity(Activity activity) {
         activityStack.remove(activity);
     }
-
 
     /**
      * 结束指定类名的Activity

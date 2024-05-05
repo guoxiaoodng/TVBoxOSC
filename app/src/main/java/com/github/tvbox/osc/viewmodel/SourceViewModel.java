@@ -100,7 +100,7 @@ public class SourceViewModel extends ViewModel {
                         e.printStackTrace();
                     } finally {
                         if (sortJson != null) {
-                            AbsSortXml sortXml = sortJson(sortResult, sortJson);
+                            AbsSortXml sortXml = sortJson(sortJson);
                             if (sortXml != null && Hawk.get(HawkConfig.HOME_REC, 0) == 1) {
                                 AbsXml absXml = json(null, sortJson, sourceBean.getKey());
                                 if (absXml != null && absXml.movie != null && absXml.movie.videoList != null && absXml.movie.videoList.size() > 0) {
@@ -148,10 +148,10 @@ public class SourceViewModel extends ViewModel {
                             AbsSortXml sortXml = null;
                             if (type == 0) {
                                 String xml = response.body();
-                                sortXml = sortXml(sortResult, xml);
-                            } else if (type == 1) {
+                                sortXml = sortXml(xml);
+                            } else {
                                 String json = response.body();
-                                sortXml = sortJson(sortResult, json);
+                                sortXml = sortJson(json);
                             }
                             if (sortXml != null && Hawk.get(HawkConfig.HOME_REC, 0) == 1 && sortXml.list != null && sortXml.list.videoList != null && sortXml.list.videoList.size() > 0) {
                                 ArrayList<String> ids = new ArrayList<>();
@@ -537,7 +537,7 @@ public class SourceViewModel extends ViewModel {
         return filter;
     }
 
-    private AbsSortXml sortJson(MutableLiveData<AbsSortXml> result, String json) {
+    private AbsSortXml sortJson(String json) {
         try {
             JsonObject obj = JsonParser.parseString(json).getAsJsonObject();
             AbsSortJson sortJson = new Gson().fromJson(obj, new TypeToken<AbsSortJson>() {
@@ -565,7 +565,7 @@ public class SourceViewModel extends ViewModel {
                         }
                     }
                 }
-            } catch (Throwable th) {
+            } catch (Throwable ignored) {
 
             }
             return data;
@@ -574,7 +574,7 @@ public class SourceViewModel extends ViewModel {
         }
     }
 
-    private AbsSortXml sortXml(MutableLiveData<AbsSortXml> result, String xml) {
+    private AbsSortXml sortXml(String xml) {
         try {
             XStream xstream = new XStream(new DomDriver());//创建Xstram对象
             xstream.autodetectAnnotations(true);

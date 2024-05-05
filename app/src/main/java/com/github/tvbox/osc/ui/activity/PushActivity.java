@@ -49,7 +49,7 @@ public class PushActivity extends BaseActivity {
                             PushActivity.this.startActivity(newIntent);
                         }
                     }
-                } catch (Throwable th) {
+                } catch (Throwable ignored) {
 
                 }
             }

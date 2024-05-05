@@ -32,7 +32,6 @@ import java.util.List;
 public class HistoryActivity extends BaseActivity {
     private TextView tvDel;
     private TextView tvDelTip;
-    private TvRecyclerView mGridView;
     private HistoryAdapter historyAdapter;
     private boolean delMode = false;
 
@@ -57,7 +56,7 @@ public class HistoryActivity extends BaseActivity {
         EventBus.getDefault().register(this);
         tvDel = findViewById(R.id.tvDel);
         tvDelTip = findViewById(R.id.tvDelTip);
-        mGridView = findViewById(R.id.mGridView);
+        TvRecyclerView mGridView = findViewById(R.id.mGridView);
         mGridView.setHasFixedSize(true);
         mGridView.setLayoutManager(new V7GridLayoutManager(this.mContext, isBaseOnWidth() ? 5 : 6));
         historyAdapter = new HistoryAdapter();
@@ -143,13 +142,9 @@ public class HistoryActivity extends BaseActivity {
 
     private void initData() {
         List<VodInfo> allVodRecord = RoomDataManger.getAllVodRecord(100);
-        List<VodInfo> vodInfoList = new ArrayList<>();
-        for (VodInfo vodInfo : allVodRecord) {
-            vodInfoList.add(vodInfo);
-        }
+        List<VodInfo> vodInfoList = new ArrayList<>(allVodRecord);
         historyAdapter.setNewData(vodInfoList);
     }
-
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void refresh(RefreshEvent event) {
