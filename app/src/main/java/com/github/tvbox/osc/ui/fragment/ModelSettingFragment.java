@@ -1,5 +1,6 @@
 package com.github.tvbox.osc.ui.fragment;
 
+import android.annotation.SuppressLint;
 import android.content.DialogInterface;
 import android.view.View;
 import android.widget.TextView;
@@ -23,7 +24,6 @@ import com.github.tvbox.osc.ui.dialog.ApiDialog;
 import com.github.tvbox.osc.ui.dialog.BackupDialog;
 import com.github.tvbox.osc.ui.dialog.SelectDialog;
 import com.github.tvbox.osc.ui.dialog.XWalkInitDialog;
-import com.github.tvbox.osc.util.DownLoadUtil;
 import com.github.tvbox.osc.util.FastClickCheckUtil;
 import com.github.tvbox.osc.util.HawkConfig;
 import com.github.tvbox.osc.util.OkGoHelper;
@@ -143,7 +143,7 @@ public class ModelSettingFragment extends BaseLazyFragment {
                 manager.setApkName("tv.apk")
                         .setApkUrl("https://www.pgyer.com/iVObXX/")
                         .setShowNewerToast(false)
-                        .setSmallIcon(R.drawable.icon_logp)
+                        .setSmallIcon(R.mipmap.ic_launcher)
                         .setApkVersionCode(99999)
                         .download();
             });
@@ -521,12 +521,14 @@ public class ModelSettingFragment extends BaseLazyFragment {
     private static synchronized void setOkHttpSsl(OkHttpClient.Builder builder) {
         try {
             // 自定义一个信任所有证书的TrustManager，添加SSLSocketFactory的时候要用到
-            final X509TrustManager trustAllCert =
+            @SuppressLint("CustomX509TrustManager") final X509TrustManager trustAllCert =
                     new X509TrustManager() {
+                        @SuppressLint("TrustAllX509TrustManager")
                         @Override
                         public void checkClientTrusted(java.security.cert.X509Certificate[] chain, String authType) throws CertificateException {
                         }
 
+                        @SuppressLint("TrustAllX509TrustManager")
                         @Override
                         public void checkServerTrusted(java.security.cert.X509Certificate[] chain, String authType) throws CertificateException {
                         }

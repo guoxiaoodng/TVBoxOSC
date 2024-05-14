@@ -33,15 +33,13 @@ import java.util.List;
  * @description:
  */
 public class SettingActivity extends BaseActivity {
-    private TvRecyclerView mGridView;
     private ViewPager mViewPager;
     private SettingMenuAdapter sortAdapter;
-    private SettingPageAdapter pageAdapter;
-    private List<BaseLazyFragment> fragments = new ArrayList<>();
+    private final List<BaseLazyFragment> fragments = new ArrayList<>();
     private boolean sortChange = false;
     private int defaultSelected = 0;
     private int sortFocused = 0;
-    private Handler mHandler = new Handler();
+    private final Handler mHandler = new Handler();
     private String homeSourceKey;
     private String currentApi;
     private int homeRec;
@@ -59,7 +57,7 @@ public class SettingActivity extends BaseActivity {
     }
 
     private void initView() {
-        mGridView = findViewById(R.id.mGridView);
+        TvRecyclerView mGridView = findViewById(R.id.mGridView);
         mViewPager = findViewById(R.id.mViewPager);
         sortAdapter = new SettingMenuAdapter();
         mGridView.setAdapter(sortAdapter);
@@ -118,12 +116,12 @@ public class SettingActivity extends BaseActivity {
 
     private void initViewPager() {
         fragments.add(ModelSettingFragment.newInstance());
-        pageAdapter = new SettingPageAdapter(getSupportFragmentManager(), fragments);
+        SettingPageAdapter pageAdapter = new SettingPageAdapter(getSupportFragmentManager(), fragments);
         mViewPager.setAdapter(pageAdapter);
         mViewPager.setCurrentItem(0);
     }
 
-    private Runnable mDataRunnable = new Runnable() {
+    private final Runnable mDataRunnable = new Runnable() {
         @Override
         public void run() {
             if (sortChange) {
@@ -136,7 +134,7 @@ public class SettingActivity extends BaseActivity {
         }
     };
 
-    private Runnable mDevModeRun = new Runnable() {
+    private final Runnable mDevModeRun = new Runnable() {
         @Override
         public void run() {
             devMode = "";
@@ -157,17 +155,15 @@ public class SettingActivity extends BaseActivity {
         if (event.getAction() == KeyEvent.ACTION_DOWN) {
             mHandler.removeCallbacks(mDataRunnable);
             int keyCode = event.getKeyCode();
-            switch (keyCode) {
-                case KeyEvent.KEYCODE_0:
-                    mHandler.removeCallbacks(mDevModeRun);
-                    devMode += "0";
-                    mHandler.postDelayed(mDevModeRun, 200);
-                    if (devMode.length() >= 4) {
-                        if (callback != null) {
-                            callback.onChange();
-                        }
+            if (keyCode == KeyEvent.KEYCODE_0) {
+                mHandler.removeCallbacks(mDevModeRun);
+                devMode += "0";
+                mHandler.postDelayed(mDevModeRun, 200);
+                if (devMode.length() >= 4) {
+                    if (callback != null) {
+                        callback.onChange();
                     }
-                    break;
+                }
             }
         } else if (event.getAction() == KeyEvent.ACTION_UP) {
             mHandler.postDelayed(mDataRunnable, 200);

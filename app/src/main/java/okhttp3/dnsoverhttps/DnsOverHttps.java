@@ -15,6 +15,7 @@
  */
 package okhttp3.dnsoverhttps;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import java.io.ByteArrayOutputStream;
@@ -46,7 +47,7 @@ import okio.ByteString;
 /**
  * DNS over HTTPS implementation.
  * <p>
- * Implementation of https://tools.ietf.org/html/draft-ietf-doh-dns-over-https-13
+ * Implementation of <a href="https://tools.ietf.org/html/draft-ietf-doh-dns-over-https-13">...</a>
  *
  * <blockquote>A DNS API client encodes a single DNS query into an HTTP request
  * using either the HTTP GET or POST method and the other requirements
@@ -73,9 +74,7 @@ public class DnsOverHttps implements Dns {
         if (builder.client == null) {
             throw new NullPointerException("client not set");
         }
-        if (builder.url == null) {
-            // throw new NullPointerException("url not set");
-        }
+        // throw new NullPointerException("url not set");
 
         this.url = builder.url;
         this.includeIPv6 = builder.includeIPv6;
@@ -93,6 +92,7 @@ public class DnsOverHttps implements Dns {
         List<InetAddress> hosts = builder.bootstrapDnsHosts;
 
         if (hosts != null) {
+            assert builder.url != null;
             return new BootstrapDns(builder.url.host(), hosts);
         } else {
             return builder.systemDns;
@@ -123,8 +123,9 @@ public class DnsOverHttps implements Dns {
         return resolvePublicAddresses;
     }
 
+    @NonNull
     @Override
-    public List<InetAddress> lookup(String hostname) throws UnknownHostException {
+    public List<InetAddress> lookup(@NonNull String hostname) throws UnknownHostException {
         if (this.url == null)
             return Dns.SYSTEM.lookup(hostname);
         if (!resolvePrivateAddresses || !resolvePublicAddresses) {
@@ -195,6 +196,7 @@ public class DnsOverHttps implements Dns {
         if (response == null) {
             response = client.newCall(request).execute();
         }
+        assert response.body() != null;
         return response.body().bytes();
     }
 
@@ -205,7 +207,7 @@ public class DnsOverHttps implements Dns {
         for (Call call : networkRequests) {
             call.enqueue(new Callback() {
                 @Override
-                public void onFailure(Call call, IOException e) {
+                public void onFailure(@NonNull Call call, @NonNull IOException e) {
                     synchronized (failures) {
                         failures.add(e);
                     }
@@ -213,7 +215,7 @@ public class DnsOverHttps implements Dns {
                 }
 
                 @Override
-                public void onResponse(Call call, Response response) {
+                public void onResponse(@NonNull Call call, @NonNull Response response) {
                     processResponse(response, hostname, responses, failures);
                     latch.countDown();
                 }
@@ -295,6 +297,7 @@ public class DnsOverHttps implements Dns {
 
             ResponseBody body = response.body();
 
+            assert body != null;
             if (body.contentLength() > MAX_RESPONSE_SIZE) {
                 throw new IOException("response size exceeds limit ("
                         + MAX_RESPONSE_SIZE

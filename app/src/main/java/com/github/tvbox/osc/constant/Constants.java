@@ -21,6 +21,6 @@ public class Constants {
     public static String DEFAULT_URL = "http://pandown.pro/tvbox/tvbox.json";
 
     public static String getTabName() {
-        return "茜茜";
+        return "主页";
     }
 }

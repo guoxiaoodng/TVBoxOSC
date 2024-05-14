@@ -1,5 +1,6 @@
 package com.github.tvbox.osc.ui.fragment;
 
+import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
@@ -48,18 +49,8 @@ import java.util.List;
  * @description:
  */
 public class UserFragment extends BaseLazyFragment implements View.OnClickListener {
-    private LinearLayout tvLive;
-    private LinearLayout tvSearch;
-    private LinearLayout tvSetting;
-    private LinearLayout tvHistory;
-    private LinearLayout tvCollect;
-    private LinearLayout tvPush;
     private HomeHotVodAdapter homeHotVodAdapter;
     private List<Movie.Video> homeSourceRec;
-
-    public static UserFragment newInstance() {
-        return new UserFragment();
-    }
 
     public static UserFragment newInstance(List<Movie.Video> recVod) {
         return new UserFragment().setArguments(recVod);
@@ -98,12 +89,12 @@ public class UserFragment extends BaseLazyFragment implements View.OnClickListen
     @Override
     protected void init() {
         EventBus.getDefault().register(this);
-        tvLive = findViewById(R.id.tvLive);
-        tvSearch = findViewById(R.id.tvSearch);
-        tvSetting = findViewById(R.id.tvSetting);
-        tvCollect = findViewById(R.id.tvFavorite);
-        tvHistory = findViewById(R.id.tvHistory);
-        tvPush = findViewById(R.id.tvPush);
+        LinearLayout tvLive = findViewById(R.id.tvLive);
+        LinearLayout tvSearch = findViewById(R.id.tvSearch);
+        LinearLayout tvSetting = findViewById(R.id.tvSetting);
+        LinearLayout tvCollect = findViewById(R.id.tvFavorite);
+        LinearLayout tvHistory = findViewById(R.id.tvHistory);
+        LinearLayout tvPush = findViewById(R.id.tvPush);
         tvLive.setOnClickListener(this);
         tvSearch.setOnClickListener(this);
         tvSetting.setOnClickListener(this);
@@ -124,6 +115,7 @@ public class UserFragment extends BaseLazyFragment implements View.OnClickListen
                 if (ApiConfig.get().getSourceBeanList().isEmpty())
                     return;
                 Movie.Video vod = ((Movie.Video) adapter.getItem(position));
+                assert vod != null;
                 if (vod.id != null && !vod.id.isEmpty()) {
                     Bundle bundle = new Bundle();
                     bundle.putString("id", vod.id);
@@ -172,7 +164,7 @@ public class UserFragment extends BaseLazyFragment implements View.OnClickListen
             int year = cal.get(Calendar.YEAR);
             int month = cal.get(Calendar.MONTH) + 1;
             int day = cal.get(Calendar.DATE);
-            String today = String.format("%d%d%d", year, month, day);
+            @SuppressLint("DefaultLocale") String today = String.format("%d%d%d", year, month, day);
             String requestDay = Hawk.get("home_hot_day", "");
             if (requestDay.equals(today)) {
                 String json = Hawk.get("home_hot", "");
@@ -197,6 +189,7 @@ public class UserFragment extends BaseLazyFragment implements View.OnClickListen
 
                 @Override
                 public String convertResponse(okhttp3.Response response) throws Throwable {
+                    assert response.body() != null;
                     return response.body().string();
                 }
             });
@@ -218,13 +211,13 @@ public class UserFragment extends BaseLazyFragment implements View.OnClickListen
                 vod.pic = obj.get("cover").getAsString();
                 result.add(vod);
             }
-        } catch (Throwable th) {
+        } catch (Throwable ignored) {
 
         }
         return result;
     }
 
-    private View.OnFocusChangeListener focusChangeListener = new View.OnFocusChangeListener() {
+    private final View.OnFocusChangeListener focusChangeListener = new View.OnFocusChangeListener() {
         @Override
         public void onFocusChange(View v, boolean hasFocus) {
             if (hasFocus)
@@ -254,8 +247,6 @@ public class UserFragment extends BaseLazyFragment implements View.OnClickListen
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void server(ServerEvent event) {
-        if (event.type == ServerEvent.SERVER_CONNECTION) {
-        }
     }
 
     @Override

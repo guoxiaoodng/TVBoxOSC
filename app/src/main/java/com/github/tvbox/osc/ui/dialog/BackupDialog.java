@@ -1,5 +1,6 @@
 package com.github.tvbox.osc.ui.dialog;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
 import android.content.SharedPreferences;
@@ -24,6 +25,7 @@ import org.jetbrains.annotations.NotNull;
 import org.json.JSONObject;
 
 import java.io.File;
+import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -94,6 +96,7 @@ public class BackupDialog extends BaseDialog {
             String root = Environment.getExternalStorageDirectory().getAbsolutePath();
             File file = new File(root + "/tvbox_backup/");
             File[] list = file.listFiles();
+            assert list != null;
             Arrays.sort(list, new Comparator<File>() {
                 @Override
                 public int compare(File o1, File o2) {
@@ -127,7 +130,7 @@ public class BackupDialog extends BaseDialog {
                 if (AppDataManager.restore(db)) {
                     byte[] data = FileUtils.readSimple(new File(backup, "hawk"));
                     if (data != null) {
-                        String hawkJson = new String(data, "UTF-8");
+                        String hawkJson = new String(data, StandardCharsets.UTF_8);
                         JSONObject jsonObject = new JSONObject(hawkJson);
                         Iterator<String> it = jsonObject.keys();
                         SharedPreferences sharedPreferences = App.getInstance().getSharedPreferences("Hawk2", Context.MODE_PRIVATE);
@@ -135,9 +138,9 @@ public class BackupDialog extends BaseDialog {
                             String key = it.next();
                             String value = jsonObject.getString(key);
                             if (key.equals("cipher_key")) {
-                                App.getInstance().getSharedPreferences("crypto.KEY_256", Context.MODE_PRIVATE).edit().putString(key, value).commit();
+                                App.getInstance().getSharedPreferences("crypto.KEY_256", Context.MODE_PRIVATE).edit().putString(key, value).apply();
                             } else {
-                                sharedPreferences.edit().putString(key, value).commit();
+                                sharedPreferences.edit().putString(key, value).apply();
                             }
                         }
                         Toast.makeText(getContext(), "恢复成功,请重启应用!", Toast.LENGTH_SHORT).show();
@@ -160,7 +163,7 @@ public class BackupDialog extends BaseDialog {
             if (!file.exists())
                 file.mkdirs();
             Date now = new Date();
-            SimpleDateFormat f = new SimpleDateFormat("yyyy-MM-dd-HHmmss");
+            @SuppressLint("SimpleDateFormat") SimpleDateFormat f = new SimpleDateFormat("yyyy-MM-dd-HHmmss");
             File backup = new File(file, f.format(now));
             backup.mkdirs();
             File db = new File(backup, "sqlite");
@@ -174,7 +177,7 @@ public class BackupDialog extends BaseDialog {
                 for (String key : sharedPreferences.getAll().keySet()) {
                     jsonObject.put(key, sharedPreferences.getString(key, ""));
                 }
-                if (!FileUtils.writeSimple(jsonObject.toString().getBytes("UTF-8"), new File(backup, "hawk"))) {
+                if (!FileUtils.writeSimple(jsonObject.toString().getBytes(StandardCharsets.UTF_8), new File(backup, "hawk"))) {
                     backup.delete();
                     Toast.makeText(getContext(), "备份Hawk失败!", Toast.LENGTH_SHORT).show();
                 } else {

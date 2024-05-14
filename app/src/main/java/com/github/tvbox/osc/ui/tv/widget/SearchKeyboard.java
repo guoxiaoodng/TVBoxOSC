@@ -30,10 +30,10 @@ import java.util.List;
  */
 public class SearchKeyboard extends FrameLayout {
     private RecyclerView mRecyclerView;
-    private List<String> keys = Arrays.asList("远程搜索", "删除", "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z", "1", "2", "3", "4", "5", "6", "7", "8", "9", "0");
-    private List<Keyboard> keyboardList = new ArrayList<>();
+    private final List<String> keys = Arrays.asList("远程搜索", "删除", "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z", "1", "2", "3", "4", "5", "6", "7", "8", "9", "0");
+    private final List<Keyboard> keyboardList = new ArrayList<>();
     private OnSearchKeyListener searchKeyListener;
-    private OnFocusChangeListener focusChangeListener = new OnFocusChangeListener() {
+    private final OnFocusChangeListener focusChangeListener = new OnFocusChangeListener() {
         @Override
         public void onFocusChange(View itemView, boolean hasFocus) {
             if (null != itemView && itemView != mRecyclerView) {
@@ -95,6 +95,7 @@ public class SearchKeyboard extends FrameLayout {
             public void onItemClick(BaseQuickAdapter adapter, View view, int position) {
                 Keyboard keyboard = (Keyboard) adapter.getItem(position);
                 if (searchKeyListener != null) {
+                    assert keyboard != null;
                     searchKeyListener.onSearchKey(position, keyboard.getKey());
                 }
             }
@@ -102,7 +103,7 @@ public class SearchKeyboard extends FrameLayout {
     }
 
     static class Keyboard implements MultiItemEntity {
-        private int itemType;
+        private final int itemType;
         private String key;
 
         private Keyboard(int itemType, String key) {
@@ -133,10 +134,8 @@ public class SearchKeyboard extends FrameLayout {
 
         @Override
         protected void convert(BaseViewHolder helper, Keyboard item) {
-            switch (helper.getItemViewType()) {
-                case 1:
-                    helper.setText(R.id.keyName, item.key);
-                    break;
+            if (helper.getItemViewType() == 1) {
+                helper.setText(R.id.keyName, item.key);
             }
         }
     }

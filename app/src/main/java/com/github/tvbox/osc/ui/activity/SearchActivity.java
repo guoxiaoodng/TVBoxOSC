@@ -58,14 +58,9 @@ import java.util.concurrent.atomic.AtomicInteger;
  * @description:
  */
 public class SearchActivity extends BaseActivity {
-    private LinearLayout llLayout;
     private TvRecyclerView mGridView;
-    private TvRecyclerView mGridViewWord;
     SourceViewModel sourceViewModel;
     private EditText etSearch;
-    private TextView tvSearch;
-    private TextView tvClear;
-    private SearchKeyboard keyboard;
     private TextView tvAddress;
     private ImageView ivQRCode;
     private SearchAdapter searchAdapter;
@@ -102,15 +97,15 @@ public class SearchActivity extends BaseActivity {
 
     private void initView() {
         EventBus.getDefault().register(this);
-        llLayout = findViewById(R.id.llLayout);
+        LinearLayout llLayout = findViewById(R.id.llLayout);
         etSearch = findViewById(R.id.etSearch);
-        tvSearch = findViewById(R.id.tvSearch);
-        tvClear = findViewById(R.id.tvClear);
+        TextView tvSearch = findViewById(R.id.tvSearch);
+        TextView tvClear = findViewById(R.id.tvClear);
         tvAddress = findViewById(R.id.tvAddress);
         ivQRCode = findViewById(R.id.ivQRCode);
         mGridView = findViewById(R.id.mGridView);
-        keyboard = findViewById(R.id.keyBoardRoot);
-        mGridViewWord = findViewById(R.id.mGridViewWord);
+        SearchKeyboard keyboard = findViewById(R.id.keyBoardRoot);
+        TvRecyclerView mGridViewWord = findViewById(R.id.mGridViewWord);
         mGridViewWord.setHasFixedSize(true);
         mGridViewWord.setLayoutManager(new V7LinearLayoutManager(this.mContext, 1, false));
         wordAdapter = new PinyinAdapter();
@@ -232,6 +227,7 @@ public class SearchActivity extends BaseActivity {
 
                     @Override
                     public String convertResponse(okhttp3.Response response) throws Throwable {
+                        assert response.body() != null;
                         return response.body().string();
                     }
                 });
@@ -267,6 +263,7 @@ public class SearchActivity extends BaseActivity {
 
                     @Override
                     public String convertResponse(okhttp3.Response response) throws Throwable {
+                        assert response.body() != null;
                         return response.body().string();
                     }
                 });
@@ -308,7 +305,7 @@ public class SearchActivity extends BaseActivity {
     }
 
     private ExecutorService searchExecutorService = null;
-    private AtomicInteger allRunCount = new AtomicInteger(0);
+    private final AtomicInteger allRunCount = new AtomicInteger(0);
 
     private void searchResult() {
         try {
@@ -323,8 +320,7 @@ public class SearchActivity extends BaseActivity {
             allRunCount.set(0);
         }
         searchExecutorService = Executors.newFixedThreadPool(5);
-        List<SourceBean> searchRequestList = new ArrayList<>();
-        searchRequestList.addAll(ApiConfig.get().getSourceBeanList());
+        List<SourceBean> searchRequestList = new ArrayList<>(ApiConfig.get().getSourceBeanList());
         SourceBean home = ApiConfig.get().getHomeSourceBean();
         searchRequestList.remove(home);
         searchRequestList.add(0, home);

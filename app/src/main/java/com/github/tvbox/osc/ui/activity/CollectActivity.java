@@ -29,7 +29,6 @@ import java.util.List;
 public class CollectActivity extends BaseActivity {
     private TextView tvDel;
     private TextView tvDelTip;
-    private TvRecyclerView mGridView;
     private CollectAdapter collectAdapter;
     private boolean delMode = false;
 
@@ -54,7 +53,7 @@ public class CollectActivity extends BaseActivity {
         EventBus.getDefault().register(this);
         tvDel = findViewById(R.id.tvDel);
         tvDelTip = findViewById(R.id.tvDelTip);
-        mGridView = findViewById(R.id.mGridView);
+        TvRecyclerView mGridView = findViewById(R.id.mGridView);
         mGridView.setHasFixedSize(true);
         mGridView.setLayoutManager(new V7GridLayoutManager(this.mContext, isBaseOnWidth() ? 5 : 6));
         collectAdapter = new CollectAdapter();
@@ -120,10 +119,7 @@ public class CollectActivity extends BaseActivity {
 
     private void initData() {
         List<VodCollect> allVodRecord = RoomDataManger.getAllVodCollect();
-        List<VodCollect> vodInfoList = new ArrayList<>();
-        for (VodCollect vodInfo : allVodRecord) {
-            vodInfoList.add(vodInfo);
-        }
+        List<VodCollect> vodInfoList = new ArrayList<>(allVodRecord);
         collectAdapter.setNewData(vodInfoList);
     }
 

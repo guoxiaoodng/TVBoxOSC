@@ -1,4 +1,5 @@
 {"name":"巧记", "address":"http://pandown.pro/tvbox/tvbox.json"};
+{"name":"tvBox", "address":"https://codeberg.org/wagaga001/tvbox-movie/raw/branch/main/%E6%99%A8%E7%91%9E%E9%BB%91%E7%A7%91%E3%80%90%E5%BD%B1%E8%A7%86%E6%BA%90%E3%80%91.json"};
 {"name":"胖虎", "address":"https://notabug.org/imbig66/tv-spider-man/raw/master/配置/0801.json"};
 {"name":"欧歌", "address":"http://tv.nxog.top/m/"};
 {"name":"Pandown", "address":"http://pandown.pro/tvbox/tvbox.json"};

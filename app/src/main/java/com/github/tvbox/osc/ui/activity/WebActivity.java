@@ -2,6 +2,7 @@ package com.github.tvbox.osc.ui.activity;
 
 import static android.webkit.WebSettings.LOAD_NO_CACHE;
 
+import android.annotation.SuppressLint;
 import android.view.View;
 import android.webkit.JsResult;
 import android.webkit.WebChromeClient;
@@ -30,15 +31,14 @@ public class WebActivity extends BaseActivity {
 //        webView.loadUrl("https://www.pgyer.com/iVObXX/");
     }
 
+    @SuppressLint("SetJavaScriptEnabled")
     private void initWeb(WebView webView) {
         webView.getSettings().setRenderPriority(WebSettings.RenderPriority.HIGH);
         WebSettings settings = webView.getSettings();
         settings.setUseWideViewPort(true);
         settings.setLoadWithOverviewMode(true);
-        settings.setAllowContentAccess(true);
         settings.setJavaScriptEnabled(true);
         settings.setJavaScriptCanOpenWindowsAutomatically(true);
-        settings.setAllowFileAccess(true);
         settings.setSupportZoom(true);
         settings.setCacheMode(LOAD_NO_CACHE);
         settings.setAllowContentAccess(true);
